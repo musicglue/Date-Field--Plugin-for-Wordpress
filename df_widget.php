@@ -14,7 +14,7 @@ class df_widget extends WP_Widget {
 		$this->WP_Widget('df_widget', __('Date Field'), $widget_ops);
 		
 		if ( is_active_widget(false, false, $this->id_base, true) ) {
-			wp_register_script( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js', 'jQuery', '1.8.13' );	
+			wp_register_script( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js', 'jquery', '1.8.13', true );	
 			wp_enqueue_script( 'jquery-ui' );
 		}
 	}
@@ -120,15 +120,16 @@ class df_widget extends WP_Widget {
 				$df_calendar_dates .= "'$df_event_date': '$df_event_info[url]',";
 			} 
 			$last_event = end( $df_calendar );
-			echo "<style>
+			$style = "<style>
 				.ui-datepicker-header	{ padding: 0.75em 0; overflow: hidden; }
 				.ui-datepicker-prev 	{ float: left; 	width: 25%; cursor: pointer;}
 				.ui-datepicker-next 	{ float: right; width: 25%; cursor: pointer; text-align: right; }
 				.ui-datepicker-title 	{ float: left;	width: 50%; text-align: center; font-weight: bold; }
 				.ui-state-disabled span	{ color: #CCC; cursor: default; }
-				tr:nth-child(even) .ui-state-disabled span { color: #DDD; }
-				.date_event:not(.ui-state-disabled)		{ background: #dfffcd !important; text-decoration: underline; }
+				tr:nth-child(even) .ui-state-disabled span 	{ color: #DDD; }
+				.date_event:not(.ui-state-disabled)			{ background: #dfffcd !important; text-decoration: underline; }
 			</style>";
+			echo $style;
 			echo "<script>
 				$(document).ready(function() {
 					var dates_allowed = {" . $df_calendar_dates . "};
