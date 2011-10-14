@@ -21,7 +21,7 @@ function date_input( $date, $name ) {
 	$mm = ($date) ? date( 'm', $date ) : 0;
 	
 	echo '<style>
-		.df_input_year{widtgh:40px;}
+		.df_input_year{width:40px;}
 		.df_input_time{width:30px;}
 	</style>';
 	
