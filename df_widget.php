@@ -5,7 +5,7 @@
  * Date Field widgets 
  *
  */
- 
+
 add_action('widgets_init', create_function('', 'return register_widget("df_widget");'));
 class df_widget extends WP_Widget {
 	
@@ -14,8 +14,8 @@ class df_widget extends WP_Widget {
 		$this->WP_Widget('df_widget', __('Date Field'), $widget_ops);
 		
 		if ( is_active_widget(false, false, $this->id_base, true) ) {
-			wp_register_script( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js', 'jquery', '1.8.13', true );	
-			wp_enqueue_script( 'jquery-ui' );
+			add_action( 'wp_enqueue_scripts', 'df_scripts', 100 );
+			
 		}
 	}
 	
@@ -29,7 +29,8 @@ class df_widget extends WP_Widget {
 			echo $before_title . $title . $after_title;		
 		$df_args = array(
 			'meta_key' => $instance['field'],
-			'meta_compare' => $instance['compare']
+			'meta_compare' => $instance['compare'],
+			'post_type' => $instance['post_type'],
 		);
 		$this->output( $args, $df_args, (bool) $instance['calendar'] );
 		
@@ -49,11 +50,11 @@ class df_widget extends WP_Widget {
 
 	/** @see WP_Widget::form */
     function form($instance) {				
-        $title = esc_attr($instance['title']);
-        $field = esc_attr($instance['field']);
-        $compare = esc_attr($instance['compare']);
-        $post_type = esc_attr($instance['post_type']); 
-        $calendar = (bool) esc_attr($instance['calendar']); 
+        $title		= ( isset( $instance['title'] ) ) 		? esc_attr($instance['title']) 		: null;
+        $field		= ( isset( $instance['field'] ) ) 		? esc_attr( $instance['field'] ) 	: null;
+        $compare	= ( isset( $instance['compare'] ) )		? esc_attr( $instance['compare'] ) 	: null;
+        $post_type	= ( isset( $instance['post_type'] ) )	? esc_attr($instance['post_type']) 	: null; 
+        $calendar	= ( isset( $instance['calendar'] ) ) 	? (bool) esc_attr( $instance['calendar'] ) : null; 
         
         ?>
             <p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?>: <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label></p>
@@ -71,8 +72,6 @@ class df_widget extends WP_Widget {
 
 	
 	function output( $args, $df_args = false, $calendar = false ) {
-		
-		//var_dump( $args );
 		
 		if($df_args['meta_compare'] == 'future' ) {
 			$df_args['meta_compare'] = '>';
@@ -98,69 +97,61 @@ class df_widget extends WP_Widget {
 		
 		$date_query = new WP_Query($df_args);
 		if ($date_query->have_posts()) : ?>
-			<ul>
-			<?php while ($date_query->have_posts()) : $date_query->the_post(); global $post;
-				$event_date = get_post_meta( $post->ID, '_df_1_start', true);
-				if( !$event_date ) continue; ?>
-				<li><a href="<?php the_permalink(); ?>">
-					<?php echo date('d/m/y', $event_date ); ?> - <?php the_title(); ?>
-				</a></li>
-				<?php if( $calendar ) $df_calendar[date('Y-m-d', $event_date )] = array( 'url' => get_permalink(), 'timestamp' => $event_date ); ?>
+	
+		<ul id="<?php echo $args['widget_id']; ?>" <?php if( $calendar ) echo 'class="df_calendar"'; ?> data-date_start="<?php echo date( time() ); ?>">
+			
+			<?php while ($date_query->have_posts()) : $date_query->the_post(); global $post; ?>
+
+				<?php
+					$event_date = get_post_meta( $post->ID, '_df_1_start', true);
+					if( ! $event_date ) 
+						continue; 
+				?>
+				
+				<li data-date="<?php echo  date('Y-m-d', $event_date ); ?>" data-timestamp="<?php echo $event_date; ?>">
+					<a href="<?php the_permalink(); ?>">
+						<span class="df_date"><?php echo date('d/m/y', $event_date ); ?><span class="df_separator"><?php echo apply_filters( 'df_separator', '&mdash;' ); ?></span></span><?php the_title(); ?>
+					</a>
+				</li>
+				
 			<?php endwhile; ?>
-			</ul>
+
+		</ul>
+
 		<?php else : ?>
+		
 			<p>No upcoming events</p>
+		
 		<?php endif;
 		
-		//end( array_keys( $df_calendar ) )
-
 		if( $calendar ) :
-			$df_calendar_dates = '';
-			foreach( $df_calendar as $df_event_date => $df_event_info ) {
-				$df_calendar_dates .= "'$df_event_date': '$df_event_info[url]',";
-			} 
-			$last_event = end( $df_calendar );
 			$style = "<style>
-				.ui-datepicker-header	{ padding: 0.75em 0; overflow: hidden; }
-				.ui-datepicker-prev 	{ float: left; 	width: 25%; cursor: pointer;}
-				.ui-datepicker-next 	{ float: right; width: 25%; cursor: pointer; text-align: right; }
+				.ui-datepicker-header	{ padding: 0.75em 0; overflow: hidden; -khtml-user-select: none; -o-user-select: none; -moz-user-select: -moz-none; -webkit-user-select: none; }
+				.ui-datepicker-prev 	{ float: left; 	width: 25%; cursor: pointer; -khtml-user-select: none; -o-user-select: none; -moz-user-select: -moz-none; -webkit-user-select: none;}
+				.ui-datepicker-next 	{ float: right; width: 25%; cursor: pointer; text-align: right; user-select: none; -khtml-user-select: none; -o-user-select: none; -moz-user-select: -moz-none; -webkit-user-select: none; }
 				.ui-datepicker-title 	{ float: left;	width: 50%; text-align: center; font-weight: bold; }
 				.ui-state-disabled span	{ color: #CCC; cursor: default; }
 				tr:nth-child(even) .ui-state-disabled span 	{ color: #DDD; }
-				.date_event:not(.ui-state-disabled)			{ background: #dfffcd !important; text-decoration: underline; }
+				.date_event:not(.ui-state-disabled)			{ background: #dfffcd; text-decoration: underline; }
 			</style>";
 			echo $style;
-			echo "<script>
-				$(document).ready(function() {
-					var dates_allowed = {" . $df_calendar_dates . "};
- 					$('#" . $args[widget_id] . " ul').wrap('<div id=\"" . $args[widget_id] . "_calendar\" class=\"widget_calendar\"/>');
- 					$('#" . $args[widget_id] . " ul').hide();
- 					$('#" . $args[widget_id] . "_calendar').datepicker({
- 					    minDate: new Date(" . date('Y, m-1, d') . "),
- 					    maxDate: new Date(" . date('Y, m-1, d', $last_event['timestamp'] ) . "),
- 						dateFormat: 'yy-mm-dd',
- 					    beforeShowDay: function(date) {
- 					        var date_str = $.datepicker.formatDate('yy-mm-dd', date );
- 					        
-							if (dates_allowed[date_str]) {
-        	    			    return [true, 'date_event', 'This date is selectable'];
-        	    			} else {
-        	    			    return [false, 'date_diabled', date_str ];
-        	    			}
- 					    },
- 					    onSelect: function( dateText ) {
- 					    	document.location = dates_allowed[dateText];
- 					    }
- 					});
-			    });
-			</script>";
 		endif; // $calendar
-
 		// RESET THE QUERY
 		wp_reset_query();
 	}
+
+
 	
 }
 
+function df_scripts(){
+		
+	wp_register_script( 'jquery-ui', DF_PLUGIN_URL . '/assets/jquery-ui-1.8.9.custom.min.js', 'jquery', '1.8.13', true );
+	wp_enqueue_script( 'jquery-ui' );
+
+	wp_register_script( 'df_script', DF_PLUGIN_URL . '/assets/script.js', 'jquery', '0.0.1', true );
+	wp_enqueue_script( 'df_script' );
+
+}
 
 ?>
