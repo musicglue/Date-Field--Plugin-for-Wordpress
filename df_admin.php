@@ -14,7 +14,9 @@ function df_admin() {
 		wp_die( __('You do not have sufficient permissions to access this page.') );
 	}
 	
-	switch( $_GET['action'] ) {
+	$action = ( isset( $_GET['action'] ) ) ? $_GET['action'] : null;
+	
+	switch( $action ) {
 		case 'edit' :
 			df_admin_edit();
 			break;
@@ -133,11 +135,11 @@ if( $errors ) {
 				<input type="hidden" value="http://localhost/vanilla/wp-admin/link-manager.php" name="_wp_original_http_referer"/><input type="hidden" value="68ca357346" name="_wpnonce" id="_wpnonce"/><input type="hidden" value="/vanilla/wp-admin/edit-link-categories.php" name="_wp_http_referer" />
 				<div class="form-field form-required">
 					<label for="df_title">Date Field Box Name</label>
-					<input type="text" aria-required="true" size="40" value="<?php if( $_POST['df_id'] == 'new') echo $_POST['df_title']; ?>" id="df_title" name="df_title"/>
+					<input type="text" aria-required="true" size="40" value="<?php if( isset( $_POST['df_id'] ) && $_POST['df_id'] == 'new') echo $_POST['df_title']; ?>" id="df_title" name="df_title"/>
 				</div>
 				<div class="form-field">
 					<label>Date Fields</label>
-						<?php $c = 0; if( $_POST['df_id'] == 'new' && isset($_POST['df_field_new']) ) : foreach($_POST['df_field_new'] as $df_new) { ?>
+						<?php $c = 0; if( isset( $_POST['df_field_new'] ) && $_POST['df_id'] == 'new' ) : foreach($_POST['df_field_new'] as $df_new) { ?>
 							<input type="text" size="40" value="<?php echo $df_new; ?>" name="df_field_new[<?php echo $c; ?>]">
 						<?php $c++; } endif; ?>
 					<input type="text" size="40" value="" id="df_fields" name="df_field_new[<?php echo $c; ?>][name]" />
@@ -150,17 +152,17 @@ if( $errors ) {
 				</div>
 				<div class="form-field">
 					<label for="df_description">Date Field Box Description</label>
-					<textarea cols="40" rows="5" id="df_description" name="df_description"><?php if( $_POST['df_id'] == 'new' ) echo $_POST['df_description']; ?></textarea>
+					<textarea cols="40" rows="5" id="df_description" name="df_description"><?php if( isset( $_POST['df_id'] ) && $_POST['df_id'] == 'new' ) echo $_POST['df_description']; ?></textarea>
 					<p>The description is not essential, but can be used to indicate what the date field box is used for. It will be displayed abover the date fields when editing posts.</p>
 				</div>
 				<fieldset id="df_new_post_types">
 					<legend>Post Types</legend><br/>
 					<?php
-					$post_types=get_post_types(array('public'=>true), 'names' , 'and'); 
+					$post_types = get_post_types( array( 'public' => true ), 'names' , 'and' ); 
 					// We don't want to enable for attachments do we?
-					unset( $post_types[array_search ( 'attachment' , $post_types )]);
+					unset( $post_types[ array_search ( 'attachment' , $post_types ) ] );
 					foreach( $post_types as $post_type ) {
-						if( $_POST['df_id'] == 'new' && isset($_POST['df_post_types']) && in_array( $post_type, $_POST['df_post_types'] ) ) { $checked = 'checked="checked"'; } else { $checked = false; }
+						if( isset($_POST['df_post_types']) && $_POST[ 'df_id' ] == 'new' && in_array( $post_type, $_POST['df_post_types'] ) ) { $checked = 'checked="checked"'; } else { $checked = false; }
 						echo '<label for="df_post_type_'.$post_type.'">'.$post_type.'</label><input type="checkbox" ' . $checked . ' value="'.$post_type.'" name="df_post_types[]" id="df_post_type_'.$post_type.'"/>';
 					} ?>
 				</fieldset>
@@ -177,7 +179,7 @@ if( $errors ) {
 
 function df_admin_edit() {
 	global $df_boxes, $df_box_objects;
-	$df_box2 = $df_boxes[$_GET[id] ];
+	$df_box2 = $df_boxes[$_GET['id'] ];
 	$df_box = $df_box_objects[$_GET['id']];
 	?>
 <div id="df_admin_edit" class="wrap">
@@ -207,10 +209,10 @@ function df_admin_edit() {
 						<?php 
 						if( is_array( $df_box->fields ) ) { 
 						foreach( $df_box->fields as $id => $field ) { if( !empty($field) ) {; ?>
-							<input type="text" size="40" value="<?php echo $field[name]; ?>" id="df_field_<?php echo $df_box->df_field_nicename($field[name]); ?>" name="df_fields[<?php echo $id; ?>][name]"/>
+							<input type="text" size="40" value="<?php echo $field['name']; ?>" id="df_field_<?php echo $df_box->df_field_nicename($field[name]); ?>" name="df_fields[<?php echo $id; ?>][name]"/>
 							<select name="df_fields[<?php echo $id; ?>][type]">
-								<option value="text" <?php if( $field[type] == 'text' ) { echo 'selected="selected"'; } ?>>Text</option>
-								<option value="date" <?php if( $field[type] == 'date' ) { echo 'selected="selected"'; } ?>>Date</option>
+								<option value="text" <?php if( $field['type'] == 'text' ) { echo 'selected="selected"'; } ?>>Text</option>
+								<option value="date" <?php if( $field['type'] == 'date' ) { echo 'selected="selected"'; } ?>>Date</option>
 							</select>
 							<br/>
 						<?php } } } ?>
@@ -295,17 +297,17 @@ function df_admin_save() {
 	
 	
 	$df_box = array(
-			title => $_POST['df_title'], 
-			description => $_POST['df_description'],
-			id => $df_id,
-			post_types => $_POST['df_post_types'],
-			fields => $_POST['df_fields']
+			'title' => $_POST['df_title'], 
+			'description' => $_POST['df_description'],
+			'id' => $df_id,
+			'post_types' => $_POST['df_post_types'],
+			'fields' => $_POST['df_fields']
 	);
 	
 	//Add new fields.
 	if( is_array($_POST['df_field_new']) ) :
 		foreach( $_POST['df_field_new'] as $new_field ) {
-			if( $new_field[name] != '' ) {
+			if( $new_field['name'] != '' ) {
 				$df_box['fields'][] = $new_field;
 			}
 		}

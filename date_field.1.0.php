@@ -100,7 +100,7 @@ function df_save_fields( $post_id ) {
 	global $df_box_objects;
 	
 	// A few checks before we start
-	if ( 'page' == $_POST['post_type'] ) {
+	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
 		if ( !current_user_can( 'edit_page', $post_id ))
 		return $post_id;
 	} else {
@@ -124,7 +124,7 @@ function df_save_fields( $post_id ) {
 		if( in_array( $post_type, $df_box->post_types ) ) :
 			
 			//Verify nonces.
-			if ( !wp_verify_nonce( $_POST[ $df_box->id . '_nonce' ], 'date_field' . MPH_DATEFIELD_VERSION )) {
+			if ( ! isset( $_POST[ $df_box->id . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $df_box->id . '_nonce' ], 'date_field' . MPH_DATEFIELD_VERSION )) {
 				return $post_id;
 			}
 			
@@ -143,10 +143,8 @@ function df_save_fields( $post_id ) {
 					$day =  $_POST[ $df_box->df_field_basename($field['name']) . '_day'];
 					$month = $_POST[ $df_box->df_field_basename($field['name']) . '_month'];
 					$year = $_POST[ $df_box->df_field_basename($field['name']) . '_year'];
-					$hour = $_POST[ $df_box->df_field_basename($field['name']) . '_hour'];
-					if( !$hour ) $hour = '00';
-					$minute = $_POST[ $df_box->df_field_basename($field) . '_minute'];
-					if( !$minute ) $minute = '00';
+					$hour = ( ! empty( $_POST[ $df_box->df_field_basename($field['name']) . '_hour'] ) ) ? $_POST[ $df_box->df_field_basename($field['name']) . '_hour'] : '00';
+					$minute = ( ! empty( $_POST[ $df_box->df_field_basename($field) . '_minute'] ) ) ? $_POST[ $df_box->df_field_basename($field) . '_minute'] : '00' ;
 					
 					if( $day != 0 && $month != 0 && $year != '' && is_numeric($year) ) {
 						$df_longtime = array( 'day' => $day, 'month' => $month, 'year' => $year, 'hour' => $hour, 'minute' => $minute );
@@ -160,7 +158,7 @@ function df_save_fields( $post_id ) {
 				if ($insert) {
 					if( get_post_meta( $post_id, '_' . $df_box->df_field_basename($field['name']) , true) == '') {
 						add_post_meta($post_id, '_' . $df_box->df_field_basename($field['name']), $insert);
-					} elseif ($timestamp != get_post_meta( $post_id, '_' . $df_box->df_field_basename($field['name']) , true)  ) {
+					} elseif ( $insert != get_post_meta( $post_id, '_' . $df_box->df_field_basename($field['name']) , true)  ) {
 						update_post_meta($post_id, '_' . $df_box->df_field_basename($field['name']), $insert);
 					}
 				} else {

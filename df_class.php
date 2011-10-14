@@ -17,7 +17,7 @@ class mph_datefield {
 	function df_create_fields() {
 		
 		// Temp - values currently stored in array - until i set up proper post_meta storage.
-		global $df_values, $post; 
+		global $post; 
 		
 		/* Lazy Admin Style */
 		echo '<style>#df_box_'. $this->id .' select{height:20px;padding:0;} #df_box_'.$this->id.' input{ padding:1px;} #df_box_'.$this->id.' label{display:block;margin-bottom:5px;} #df_box_'.$this->id.' div.df_input {margin-bottom:10px; } .df_input {padding: 6px 0;} .df_input label { margin-bottom: 6px; display: block; padding: 0 6px; } .df_input .text_input { width: 98%; }</style>';

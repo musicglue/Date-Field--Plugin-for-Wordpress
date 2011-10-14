@@ -52,9 +52,9 @@ function date_input( $date, $name ) {
 	$year = '<input type="text" value="' . $value . '" maxwidth="4" size="4" name="' . $name . '_year" class="df_input_year" />';
 	
 	/* Time input */
-	if( $date ) { $value = date('H', $date) ;} else { unset($value); }
+	if( $date ) { $value = date('H', $date) ;} else { $value = null; }
 	$hour = '<input type="text" maxlength="2" size="2" name="' . $name . '_hour" value="'.$value.'" class="df_input_time">';
-	if( $date ) { $value = date('i', $date);} else { unset($value); }; 
+	if( $date ) { $value = date('i', $date);} else { $value = null; }; 
 	$minute = '<input type="text" maxlength="2" size="2" name="' . $name . '_minute" value="'.$value.'" class="df_input_time">';
 	
 	echo $month . ' ' . $day . ', ' . $year . '@' . $hour . ':' . $minute;
