@@ -3,7 +3,7 @@
 Plugin Name: Date Field
 Plugin URI: http://matth.eu/wordpress-date-field-plugin 
 Description: Adds a custom field for adding dates to posts. The dates are stored as a unix timestamp. Version 1.0 is NOT COMPATIBLE with previous versions.
-Version: 1.1
+Version: 1.2
 Author: Matthew Haines-Young
 Author URI: http://matth.eu
 
@@ -33,7 +33,8 @@ To Do:
 	include_once( dirname(__FILE__) . '/df_admin.php' );
 	include_once( dirname(__FILE__) . '/df_widget.php' );
 
-	define('MPH_DATEFIELD_VERSION', '1.0');
+	define( 'MPH_DATEFIELD_VERSION', '1.2' );
+	define( 'DF_PLUGIN_URL', WP_PLUGIN_URL . DIRECTORY_SEPARATOR . end( explode( '/', dirname( __FILE__ ) ) ) );
 	
 	//Initiate mph_datefield class for each defined box.
 	if( is_admin() ) :
